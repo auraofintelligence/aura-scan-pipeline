@@ -1,0 +1,85 @@
+# Aura Scan Pipeline: default configuration.
+# Merge order: this file, then configs/<mode>.yaml, then the scan manifest's `config:` block.
+# All distances are metres unless the key name says otherwise.
+
+units:
+  internal: m
+
+ingest:
+  mesh_sample_points: 200000     # points sampled from a mesh input when a cloud is needed
+  frame_stride: 3                # use every Nth frame when fusing raw depth packages
+
+clean:
+  voxel_size: 0.005              # 0 disables downsampling
+  statistical_outlier:
+    enabled: true
+    nb_neighbors: 20
+    std_ratio: 2.0
+  radius_outlier:
+    enabled: false
+    nb_points: 16
+    radius: 0.05
+  keep_largest_cluster: false    # DBSCAN largest-cluster keep (clouds) / largest component (meshes)
+  cluster_eps: 0.05
+
+register:
+  icp:
+    max_correspondence: 0.05
+    max_iterations: 60
+
+scale:
+  apply_tolerance: 0.002         # rescale only if |factor - 1| exceeds this
+
+mesh:
+  prefer_source_mesh: true       # when the capture app already exported a mesh, clean and use it
+  method: poisson                # poisson | ball_pivot
+  poisson:
+    depth: 9
+    density_quantile: 0.02       # crop the lowest-density fraction after Poisson
+  normals:
+    knn: 30
+  tsdf:
+    voxel_size: 0.01
+    sdf_trunc: 0.04
+    depth_scale: 1000.0          # uint16 depth PNGs in millimetres
+    depth_trunc: 5.0
+
+lods:
+  lod1_max_triangles: 15000
+  lod2_max_triangles: 400000
+  footprint_simplify_m: 0.02
+
+sections:
+  auto: true
+  plan_height: 0.5               # plan cut this far above the lowest point
+
+asset:
+  key_height_bins: 60            # histogram bins for key-height detection
+  key_height_min_fraction: 0.06  # a bin must hold this fraction of vertices to count as a surface
+
+projection:
+  ransac:
+    distance_threshold: 0.01
+    num_iterations: 2000
+  max_rmse: 0.015
+  min_inlier_ratio: 0.6
+
+dxf:
+  units: mm                      # mm | m; assets and small structures read best in millimetres
+  version: R2018
+  section_gap_factor: 1.4        # horizontal spacing between laid-out sections, times plan width
+  layers:
+    existing: EXISTING
+    sections: SECTIONS
+    dimensions: DIMENSIONS
+    text: TEXT
+    hatch: HATCH
+    projection: PROJECTION_SURFACE
+    asset: ASSET_OUTLINE
+
+export:
+  pointcloud_formats: [ply, las]
+  thumbnail_size: [800, 600]
+
+web:
+  glb_lod: lod1

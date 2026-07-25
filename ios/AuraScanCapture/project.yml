@@ -1,0 +1,43 @@
+# XcodeGen project spec for the AuraScanCapture iOS app.
+# On a Mac: `brew install xcodegen`, then `xcodegen generate` in this folder,
+# open AuraScanCapture.xcodeproj, set your signing team, run on an iPhone Pro.
+# See ../README.md for the full build and transfer walkthrough.
+
+name: AuraScanCapture
+
+options:
+  bundleIdPrefix: earth.gajra
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+targets:
+  AuraScanCapture:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Sources
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Aura Scan
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        NSCameraUsageDescription: Aura Scan uses the camera and LiDAR scanner to capture 3D scans of places and public assets for the Aura digital twin pipeline. Nothing leaves the phone until you share an export.
+        UIRequiredDeviceCapabilities: [arkit]
+        # Scan packages live in Documents/ so they are visible over USB file
+        # sharing (iTunes / Apple Devices on Windows) and in the Files app.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: earth.gajra.aurascancapture
+        # Language mode 5 on the Swift 5.10+ toolchain. Leave at 5.0 for the
+        # first build; Swift 6 strict concurrency will flag ARFrame handling.
+        SWIFT_VERSION: "5.0"
+        SWIFT_STRICT_CONCURRENCY: minimal
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic

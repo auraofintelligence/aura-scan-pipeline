@@ -1,0 +1,7 @@
+# Overrides for capture mode: general. Site-scale work reads best in metres.
+dxf:
+  units: m
+sections:
+  plan_height: 1.0
+lods:
+  lod2_max_triangles: 800000

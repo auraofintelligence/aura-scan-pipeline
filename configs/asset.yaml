@@ -1,0 +1,9 @@
+# Overrides for capture mode: asset (public asset inventory).
+clean:
+  keep_largest_cluster: true     # isolate the asset from ground and background
+sections:
+  plan_height: 0.4               # picnic tables and BBQs read well cut at seat height
+lods:
+  lod1_max_triangles: 10000      # inventory objects stay light for the web
+dxf:
+  units: mm

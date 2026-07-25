@@ -1,0 +1,10 @@
+# Overrides for capture mode: projection_surface (light projection art surfaces).
+clean:
+  voxel_size: 0.003              # keep fine detail; planarity is the whole point
+mesh:
+  prefer_source_mesh: false      # fit the plane from the cloud, not a pre-baked mesh
+projection:
+  max_rmse: 0.015
+  min_inlier_ratio: 0.6
+dxf:
+  units: mm
