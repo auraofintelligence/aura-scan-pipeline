@@ -8,6 +8,10 @@ units:
 ingest:
   mesh_sample_points: 200000     # points sampled from a mesh input when a cloud is needed
   frame_stride: 3                # use every Nth frame when fusing raw depth packages
+  start_frame: 0                 # skip raw frames before this index (0 = keep all)
+  max_pose_jump_m: 0.5           # split the trajectory at jumps bigger than this, keep the longest run
+  min_valid_depth_m: 0.1         # drop frames whose median depth is nearer than this (covered lens)
+  min_confidence: 1              # Stray confidence floor: 0 low, 1 medium, 2 high
 
 clean:
   voxel_size: 0.005              # 0 disables downsampling

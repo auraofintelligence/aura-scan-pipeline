@@ -51,6 +51,12 @@ class _Frame:
     depth_path: Path
     rgb_path: Path | None = None
     confidence_path: Path | None = None
+    # Per-frame intrinsics at RGB resolution when the export carries them
+    # (Stray odometry does; ARKit varies these with autofocus).
+    fx: float | None = None
+    fy: float | None = None
+    cx: float | None = None
+    cy: float | None = None
 
 
 def _dir_package_kind(root: Path) -> str | None:
@@ -144,6 +150,35 @@ def _pose_from_quaternion(x: float, y: float, z: float,
     return pose
 
 
+def _opt_float(row: dict, key: str) -> float | None:
+    try:
+        value = float(row[key])
+    except (KeyError, TypeError, ValueError):
+        return None
+    return value if np.isfinite(value) else None
+
+
+def _trim_to_largest_segment(frames: list[_Frame], max_jump: float):
+    """Keep the longest run of frames with no pose jump above max_jump metres.
+
+    A covered lens or lost tracking at the start leaves a corrupted segment that
+    ends in a teleport when ARKit relocalises; this drops it automatically.
+    Returns (kept_frames, (kept, dropped, break_count)).
+    """
+    if len(frames) <= 1 or max_jump <= 0:
+        return frames, (len(frames), 0, 0)
+    breaks = [0]
+    for i in range(1, len(frames)):
+        step = float(np.linalg.norm(frames[i].pose_c2w[:3, 3] - frames[i - 1].pose_c2w[:3, 3]))
+        if step > max_jump:
+            breaks.append(i)
+    breaks.append(len(frames))
+    spans = [(breaks[k], breaks[k + 1]) for k in range(len(breaks) - 1)]
+    start, end = max(spans, key=lambda se: se[1] - se[0])
+    kept = frames[start:end]
+    return kept, (len(kept), len(frames) - len(kept), len(spans) - 1)
+
+
 def _indexed_files(folder: Path, suffixes: tuple[str, ...]) -> dict[int, Path]:
     """Map frame number to file for folders of NNNNN.<ext> files, any zero padding."""
     files: dict[int, Path] = {}
@@ -197,6 +232,8 @@ def _load_stray_frames(root: Path) -> tuple[dict[str, float], list[_Frame], Path
                 pose_c2w=_Y_UP_TO_Z_UP @ pose,
                 depth_path=depth_files[idx],
                 confidence_path=confidence_files.get(idx),
+                fx=_opt_float(row, "fx"), fy=_opt_float(row, "fy"),
+                cx=_opt_float(row, "cx"), cy=_opt_float(row, "cy"),
             ))
     if not frames:
         raise PipelineError(
@@ -345,11 +382,28 @@ def _fuse(root: Path, kind: str, cfg: dict, source_name: str) -> FusedResult:
     depth_scale = float(cfg_get(cfg, "mesh.tsdf.depth_scale", 1000.0))
     depth_trunc = float(cfg_get(cfg, "mesh.tsdf.depth_trunc", 5.0))
 
+    start_frame = int(cfg_get(cfg, "ingest.start_frame", 0))
+    max_pose_jump = float(cfg_get(cfg, "ingest.max_pose_jump_m", 0.5))
+    min_valid_depth_mm = float(cfg_get(cfg, "ingest.min_valid_depth_m", 0.1)) * depth_scale
+
     if kind == "stray":
         intr, frames, video_path = _load_stray_frames(root)
     else:
         intr, frames, video_path = _load_generic_frames(root)
     frames.sort(key=lambda f: f.index)
+    total_frames = len(frames)
+    if start_frame > 0:
+        frames = [f for f in frames if f.index >= start_frame]
+        log.info("Skipping frames before %d (%d remain)", start_frame, len(frames))
+    frames, (kept, dropped, breaks) = _trim_to_largest_segment(frames, max_pose_jump)
+    if dropped:
+        log.info("Dropped %d frame(s) outside the largest stable pose run "
+                 "(%d tracking break(s) over %.2f m)", dropped, breaks, max_pose_jump)
+    if not frames:
+        raise PipelineError(
+            f"No frames left in {source_name} after trimming tracking breaks; "
+            "try lowering ingest.max_pose_jump_m or setting ingest.start_frame."
+        )
     selected = frames[::stride]
 
     video_reader = None
@@ -374,11 +428,22 @@ def _fuse(root: Path, kind: str, cfg: dict, source_name: str) -> FusedResult:
             scale_x, scale_y = width / float(stated[0]), height / float(stated[1])
         else:
             scale_x = scale_y = 1.0
-    intrinsic = o3d.camera.PinholeCameraIntrinsic(
+    base_intr = o3d.camera.PinholeCameraIntrinsic(
         width, height,
         float(intr["fx"]) * scale_x, float(intr["fy"]) * scale_y,
         float(intr["cx"]) * scale_x, float(intr["cy"]) * scale_y,
     )
+
+    def _frame_intrinsic(frame: _Frame) -> o3d.camera.PinholeCameraIntrinsic:
+        if frame.fx is None or frame.fy is None or frame.cx is None or frame.cy is None:
+            return base_intr
+        return o3d.camera.PinholeCameraIntrinsic(
+            width, height,
+            frame.fx * scale_x, frame.fy * scale_y,
+            frame.cx * scale_x, frame.cy * scale_y,
+        )
+
+    per_frame_intr = 0
 
     volume = o3d.pipelines.integration.ScalableTSDFVolume(
         voxel_length=voxel,
@@ -404,6 +469,12 @@ def _fuse(root: Path, kind: str, cfg: dict, source_name: str) -> FusedResult:
             continue
         if frame.confidence_path is not None and min_confidence > 0:
             depth = _apply_confidence(depth, frame.confidence_path, min_confidence)
+
+        # Quality gate: an occluded lens reads a solid surface centimetres away
+        # at high confidence, so drop frames whose valid depth is implausibly near.
+        valid = depth[depth > 0]
+        if valid.size == 0 or float(np.median(valid)) < min_valid_depth_mm:
+            continue
 
         colour: np.ndarray | None = None
         if frame.rgb_path is not None:
@@ -446,6 +517,9 @@ def _fuse(root: Path, kind: str, cfg: dict, source_name: str) -> FusedResult:
                 f"Pose for frame {frame.index} in {source_name} is not invertible; "
                 "poses must be rigid camera-to-world transforms."
             ) from exc
+        intrinsic = _frame_intrinsic(frame)
+        if intrinsic is not base_intr:
+            per_frame_intr += 1
         volume.integrate(rgbd, intrinsic, extrinsic)
         frames_used += 1
 
@@ -477,8 +551,9 @@ def _fuse(root: Path, kind: str, cfg: dict, source_name: str) -> FusedResult:
         sample_count = max(1, int(cfg_get(cfg, "ingest.mesh_sample_points", 200_000)))
         pointcloud = mesh.sample_points_uniformly(number_of_points=sample_count)
 
-    notes = (f"{kind} raw package: {frames_used}/{len(frames)} frames integrated "
-             f"(stride {stride}), colour on {colour_frames}/{frames_used} frame(s)")
+    notes = (f"{kind} raw package: {frames_used}/{total_frames} frames integrated "
+             f"(stride {stride}), colour on {colour_frames}/{frames_used} frame(s), "
+             f"per-frame intrinsics on {per_frame_intr}/{frames_used}")
     if kind == "stray":
         notes += ", ARKit Y-up world rotated to Z up"
     log.info("%s", notes)
