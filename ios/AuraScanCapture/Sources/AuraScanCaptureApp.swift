@@ -38,9 +38,21 @@ final class AppState: ObservableObject {
     /// sharing and the Files app can reach it without extra plumbing.
     let scanFolderURL: URL
 
-    /// The raw depth package the PC pipeline ingests; see RawFrameRecorder for
-    /// the format contract.
-    var rawPackageURL: URL { scanFolderURL.appendingPathComponent("raw", isDirectory: true) }
+    /// The raw depth package the PC pipeline ingests; see RawFrameRecorder
+    /// for the format contract. Each recording take gets its own folder
+    /// (raw, raw-2, raw-3) because the recorder refuses to overwrite an
+    /// earlier take; the PC pipeline fuses every package it finds in the
+    /// bundle and merges them.
+    func nextRawPackageURL() -> URL {
+        let first = scanFolderURL.appendingPathComponent("raw", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: first.path) { return first }
+        var take = 2
+        while true {
+            let candidate = scanFolderURL.appendingPathComponent("raw-\(take)", isDirectory: true)
+            if !FileManager.default.fileExists(atPath: candidate.path) { return candidate }
+            take += 1
+        }
+    }
 
     init() {
         let formatter = DateFormatter()

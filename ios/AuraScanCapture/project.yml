@@ -6,7 +6,7 @@
 name: AuraScanCapture
 
 options:
-  bundleIdPrefix: earth.gajra
+  bundleIdPrefix: au.auraofintelligence
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -34,8 +34,9 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: earth.gajra.aurascancapture
-        # Language mode 5 on the Swift 5.10+ toolchain. Leave at 5.0 for the
+        PRODUCT_BUNDLE_IDENTIFIER: au.auraofintelligence.aurascancapture
+        # Language mode 5 on the Swift 5.10+ toolchain. SWIFT_VERSION only
+        # accepts major language modes (5.0, not 5.10). Leave at 5.0 for the
         # first build; Swift 6 strict concurrency will flag ARFrame handling.
         SWIFT_VERSION: "5.0"
         SWIFT_STRICT_CONCURRENCY: minimal

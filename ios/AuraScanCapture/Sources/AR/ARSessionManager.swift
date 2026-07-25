@@ -34,7 +34,7 @@ final class ARSessionManager: NSObject, ObservableObject {
     // MARK: Internals
 
     private(set) weak var arView: ARView?
-    private let sessionQueue = DispatchQueue(label: "earth.gajra.aurascan.arsession", qos: .userInitiated)
+    private let sessionQueue = DispatchQueue(label: "au.auraofintelligence.aurascan.arsession", qos: .userInitiated)
     private let stateLock = NSLock()
     private var recorder: RawFrameRecorder?
     private var recordingActive = false
