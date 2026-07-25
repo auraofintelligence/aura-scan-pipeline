@@ -18,6 +18,17 @@ Honest note: pricing tiers and export menus change often and without notice. Ver
 
 **Which format, in one line.** A mesh (OBJ or GLB) plus a point cloud (PLY or LAS) when the app offers both; the pipeline prefers the app's own mesh and always writes point clouds out. USDZ works only with the optional `usd` extra installed, so avoid it when another format is on offer. The full list the pipeline reads: OBJ, GLB, GLTF, STL, DAE, PLY, PCD, XYZ, LAS, LAZ, USDZ, and raw depth packages (Stray Scanner's layout, or the generic spec in [formats.md](formats.md)).
 
+## Start easy, and know what wrecks a scan
+
+Accuracy is won at capture time. The processing can verify scale and clean noise, but it cannot invent detail a rushed capture never recorded. Four things wreck a scan, and a bare driveway manages all of them at once, so do not judge the system on a hard first target:
+
+- **A blank, featureless surface** (bare concrete, plain render, empty driveway) starves the phone's tracker. It finds its position by watching visual features move, and flat grey has none, so it drifts. Give it texture and edges in view: scan an object that sits among other things, not one marooned in the middle of an empty slab.
+- **Moving fast.** The phone blends your motion into one model frame by frame. Sweep slowly, like painting with a wide brush. Fast passes blur the tracking and thin the coverage.
+- **Covering the lens, or recording before tracking settles.** If the camera is blocked or the phone has not found its bearings, the first seconds are garbage and can throw the whole model out (the pipeline now trims this automatically, but it costs you coverage). Wake the app, move the phone gently around the scene for two or three seconds until the live mesh looks stable, and only then start recording.
+- **Harsh midday sun.** It washes out the colour photos, bakes hard shadows into the model, and heats the phone until it throttles. Soft, even light is best; overcast is ideal.
+
+**Easy mode for learning:** a single object on a table, indoors, with other textured things around it, even soft light, and you moving slowly in full circles. Nail that first. An open sunlit driveway is genuinely hard mode.
+
 ## Technique
 
 The sensor is honest but short-sighted. It reads best between 1 and 3 metres, and the phone stitches your movement into one model as you go, so how you move is most of the result.
@@ -78,6 +89,8 @@ Whatever the route, the file ends its journey in `scans\<name>\raw\`.
 
 **Every capture**
 
+- [ ] Uncover the lens; move gently for 2 to 3 seconds until the live mesh is stable before recording
+- [ ] Pick a subject with texture and edges around it, not marooned on bare concrete
 - [ ] Establish the floor first
 - [ ] Slow arcs, 1 to 3 m, overlapping passes
 - [ ] Close the loop back to the starting view
