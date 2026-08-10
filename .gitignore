@@ -4,7 +4,6 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-scans/*/work/
-scans/*/raw/
 .pytest_cache/
 uv.lock
+scans/

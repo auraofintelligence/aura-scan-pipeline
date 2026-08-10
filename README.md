@@ -2,13 +2,42 @@
 
 Phone scans in, measurable CAD-ready twins out, processed entirely on your own machine. You walk around a picnic table, a wall or a skate bowl with an iPhone, export the scan from a LiDAR app (LiDAR is the phone's laser depth sensor: it measures distance with light the way a bat does with sound), drop the file onto a Windows PC, and one command turns it into web-ready 3D models, a point cloud and a measured, layered CAD drawing. No cloud services, no accounts, no uploads. The data never leaves your own gear.
 
+## If you remember nothing else
+
+Four commands. Everything else on this page is detail.
+
+```powershell
+aura-scan init my-scan --mode asset      # 1. make a folder
+                                          # 2. drop the phone export into scans\my-scan\raw\
+aura-scan run scans\my-scan               # 3. process it
+aura-scan report scans\my-scan            # 4. see what came out
+```
+
+Results land in `scans\my-scan\exports\`: a light 3D model for the web, a full-detail one, a point
+cloud, a dimensioned CAD drawing, and a record card saying what was scanned and how far the
+measurements can be trusted.
+
+The one optional step worth doing: tape-measure two distances on site, then run
+`aura-scan pick scans\my-scan` to click those same two points on screen and write the real numbers
+into `manifest.yaml`. That is what turns a scan that looks right into a drawing an engineer can
+trust. Full instructions are in [docs/capture-guide.md](docs/capture-guide.md).
+
 ## Where this is up to
 
 Plain status, no spin:
 
-- The PC pipeline is built and runs end to end, proven on synthetic test shapes and on the export formats the capture apps produce.
-- No real-world capture has been processed yet. First field scans are the next step.
-- The custom iPhone capture app is unbuilt source in [`ios/`](ios/README.md). Compiling it needs Xcode on a Mac, and this project runs on a Windows box, so today's captures come from existing apps.
+- The PC pipeline is built and runs end to end. Thirteen automated tests pass, and it has now
+  processed a real scan: a child's bike captured on an iPhone with Stray Scanner, fused from raw
+  depth and camera poses, isolated from the room and measured at roughly 0.85 by 0.63 by 0.46 m.
+- That first real scan taught the pipeline three things it now handles automatically: a covered
+  lens at the start of a capture, the tracking jump when the phone relocates itself, and the fact
+  that the phone changes its own focal length while filming.
+- Scale is still uncalibrated on that scan, because no tape measurements were taken. The next real
+  capture should include them, which is the difference between a believable number and a proven one.
+- The custom iPhone capture app is unbuilt source in [`ios/`](ios/README.md). Compiling it needs
+  Xcode on a Mac, and this project runs on a Windows box, so today's captures come from existing
+  apps. [Stray Scanner](https://apps.apple.com/us/app/stray-scanner/id1557051662) is the one to use:
+  it is open source, records locally, and claims no licence over what you scan.
 
 ## Who it serves
 
