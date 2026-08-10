@@ -34,6 +34,11 @@ Plain status, no spin:
   that the phone changes its own focal length while filming.
 - Scale is still uncalibrated on that scan, because no tape measurements were taken. The next real
   capture should include them, which is the difference between a believable number and a proven one.
+- **Known gap: the pipeline does not isolate an object from its surroundings yet.** Run it on a scan
+  of a picnic table and it will measure the table, the ground and whatever else was within range,
+  and report the dimensions of all of it. Pulling one object out of a scene currently takes a
+  manual pass. Until that lands, trust `aura-scan run` for whole scenes and surfaces, and treat
+  single-object dimensions as needing a human check.
 - The custom iPhone capture app is unbuilt source in [`ios/`](ios/README.md). Compiling it needs
   Xcode on a Mac, and this project runs on a Windows box, so today's captures come from existing
   apps. [Stray Scanner](https://apps.apple.com/us/app/stray-scanner/id1557051662) is the one to use:
