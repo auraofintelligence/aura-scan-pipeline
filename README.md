@@ -1,6 +1,32 @@
 # Aura Scan Pipeline
 
+<!-- github-organisation:start -->
+
+## Project links and history
+
+- First substantive build: 25 July 2026.
+- GitHub repository: [aura-scan-pipeline](https://github.com/auraofintelligence/aura-scan-pipeline).
+- Public site: [visit the public site](https://auraofintelligence.github.io/aura-scan-pipeline/).
+
+## Related public projects
+
+Each link below reflects an evidenced family, lineage or direct connection. This project has 7 relevant public connections.
+
+### Aura interface, geometry and capture architecture
+
+- [aura-components](https://github.com/auraofintelligence/aura-components) - [public page](https://auraofintelligence.github.io/aura-components/) - shared technical architecture.
+- [aura-data-mapping](https://github.com/auraofintelligence/aura-data-mapping) - [public page](https://auraofintelligence.github.io/aura-data-mapping/) - shared technical architecture.
+- [aura-horn-torus](https://github.com/auraofintelligence/aura-horn-torus) - [public page](https://auraofintelligence.github.io/aura-horn-torus/) - explicit cross-reference, shared technical architecture.
+- [aura-of-intelligence-web-app](https://github.com/auraofintelligence/aura-of-intelligence-web-app) - shared technical architecture.
+- [aura-spatial-perception](https://github.com/auraofintelligence/aura-spatial-perception) - [public page](https://auraofintelligence.github.io/aura-spatial-perception/) - earlier build; aura-spatial-perception is later, explicit cross-reference, ordered build lineage, shared technical architecture.
+- [aura-toy](https://github.com/auraofintelligence/aura-toy) - [public page](https://auraofintelligence.github.io/aura-toy/) - shared technical architecture.
+- [new-tori](https://github.com/auraofintelligence/new-tori) - [public page](https://auraofintelligence.github.io/new-tori/) - shared technical architecture.
+
+<!-- github-organisation:end -->
+
 Phone scans in, measurable CAD-ready twins out, processed entirely on your own machine. You walk around a picnic table, a wall or a skate bowl with an iPhone, export the scan from a LiDAR app (LiDAR is the phone's laser depth sensor: it measures distance with light the way a bat does with sound), drop the file onto a Windows PC, and one command turns it into web-ready 3D models, a point cloud and a measured, layered CAD drawing. No cloud services, no accounts, no uploads. The data never leaves your own gear.
+
+Public page: [Aura Scan Pipeline](https://auraofintelligence.github.io/aura-scan-pipeline/)
 
 ## If you remember nothing else
 
@@ -127,6 +153,11 @@ One capture, four tiers of detail, produced in a single run. LOD means level of 
 - [docs/capture-guide.md](docs/capture-guide.md): field guide for scanning and transfer.
 - [docs/windemere-workflow.md](docs/windemere-workflow.md): the worked engineering lane, scan to tender drawing.
 - [configs/](configs/): every threshold and layer name, in plain YAML.
+
+## Related public projects
+
+- [Aura Spatial Perception](https://auraofintelligence.github.io/aura-spatial-perception/) — consumes a read-only scan-pipeline adapter contract while keeping observation evidence separate.
+- [Aura Horn Torus](https://auraofintelligence.github.io/aura-horn-torus/) — supplies the canonical Aura geometry used by the spatial-perception bridge.
 
 ---
 
